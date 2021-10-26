@@ -9,6 +9,7 @@
    <com.samekengneering.kidsdrawingapp.DrawingView
        android:layout_width="0dp"
        android:layout_height="0dp"
+       android:background="@drawable/canvas_background"
        android:id="@+id/drawing_view"
        app:layout_constraintTop_toTopOf="parent"
        app:layout_constraintBottom_toBottomOf="parent"
