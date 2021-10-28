@@ -3,6 +3,7 @@ package com.samekengneering.kidsdrawingapp
 import android.content.Context
 import android.graphics.*
 import android.util.AttributeSet
+import android.util.TypedValue
 import android.view.MotionEvent
 import android.view.View
 
@@ -26,7 +27,7 @@ class DrawingView(context:Context,attrs:AttributeSet):View(context,attrs) {
         mDrawingPaint!!.strokeJoin=Paint.Join.ROUND
         mDrawingPaint!!.strokeCap=Paint.Cap.ROUND
         mCanvasPaint=Paint(Paint.DITHER_FLAG)
-        mBrushSize=20.toFloat()
+        //mBrushSize=20.toFloat()
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
@@ -65,6 +66,14 @@ class DrawingView(context:Context,attrs:AttributeSet):View(context,attrs) {
         }
         invalidate()
         return true
+    }
+    fun setColor(newColor:String){
+        color=Color.parseColor(newColor)
+        mDrawingPaint!!.color=color
+    }
+    fun setSizeforBrush(newSize:Float){
+        mBrushSize=TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP,newSize,resources.displayMetrics)
+        mDrawingPaint!!.strokeWidth=mBrushSize
     }
     override fun onDraw(canvas: Canvas) {
             super.onDraw(canvas)
