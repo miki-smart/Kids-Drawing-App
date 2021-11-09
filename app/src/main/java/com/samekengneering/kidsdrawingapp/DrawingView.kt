@@ -16,8 +16,15 @@ class DrawingView(context:Context,attrs:AttributeSet):View(context,attrs) {
     private var mBrushSize:Float=0.toFloat()
     private var canvas:Canvas?=null
     private val paths=ArrayList<CustomPath>()
+    private val mUndoPaths=ArrayList<CustomPath>()
     init {
         setUpDrawing()
+    }
+    fun onClickUndo(){
+        if(paths.size>0){
+            mUndoPaths.add(paths.removeAt(paths.size-1))
+            invalidate()
+        }
     }
     private fun setUpDrawing(){
         mDrawPath=CustomPath(color,mBrushSize)

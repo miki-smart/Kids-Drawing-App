@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="10dp">
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Custom Dialog" android:textSize="16sp"
+        android:textColor="@color/black" android:layout_margin="5dp"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Custom Dialog Detail Content" android:textSize="14sp"
+        android:textColor="@android:color/darker_gray" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginTop="10dp">
+        <TextView
+            android:id="@+id/tv_submit"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:foreground="?attr/selectableItemBackground"
+            android:text="SUBMIT"
+            android:padding="5dp"
+            android:textColor="@color/red"
+            android:gravity="center"/>
+        <TextView
+            android:id="@+id/tv_cancel"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:foreground="?attr/selectableItemBackground"
+            android:text="CANCEL"
+            android:gravity="center"
+            android:padding="5dp"
+            android:textColor="@color/red"/>
+    </LinearLayout>
+</LinearLayout>
