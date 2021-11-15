@@ -6,9 +6,14 @@ import android.app.Dialog
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Color
+import android.os.AsyncTask
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.provider.MediaStore
+import android.util.Log
 import android.view.View
 import android.widget.ImageButton
 import android.widget.ProgressBar
@@ -20,9 +25,76 @@ import com.google.android.material.snackbar.Snackbar
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.brush_selector_dialog_layout.*
 import kotlinx.android.synthetic.main.dialog_custom.*
+import java.io.ByteArrayOutputStream
+import java.io.File
+import java.io.FileOutputStream
 import java.lang.Exception
 
 class MainActivity : AppCompatActivity() {
+    private inner class ExecuteAsyncTask(val value:String): AsyncTask<Any, Void, String>(){
+        var customProgressDialog:Dialog?=null
+        override fun onPreExecute() {
+            super.onPreExecute()
+            showProgressDialog()
+        }
+
+        private fun showProgressDialog() {
+            customProgressDialog= Dialog(this@MainActivity)
+            customProgressDialog!!.setContentView(R.layout.progress_custom_layout)
+            customProgressDialog!!.show()
+        }
+
+        override fun doInBackground(vararg params: Any?): String {
+            for ( i in 1..10000){
+                Log.e("i: ",""+i)
+            }
+            return value
+        }
+
+        override fun onPostExecute(result: String?) {
+            super.onPostExecute(result)
+            cancelProgressDialog()
+        }
+
+        private fun cancelProgressDialog() {
+
+
+            customProgressDialog!!.dismiss()
+        }
+    }
+    private inner class BitMapAsyncTask(val mBitMap:Bitmap):AsyncTask<Any,Void,String>(){
+
+        override fun doInBackground(vararg params: Any?): String {
+            var result=""
+            if(mBitMap!=null){
+                try {
+                    val bytes=ByteArrayOutputStream()
+                   mBitMap.compress(Bitmap.CompressFormat.PNG,90,bytes)
+                    var f=File(externalCacheDir!!.absoluteFile.toString(),"KidsDrawingApp_"+File.separator+System.currentTimeMillis()/1000+".png")
+                    var fos=FileOutputStream(f)
+                    fos.write(bytes.toByteArray())
+                    fos.close()
+                    result=f.absolutePath
+                }catch (e:Exception){
+                    result=""
+e.printStackTrace()
+                }
+            }
+            return result
+        }
+
+        override fun onPostExecute(result:String?) {
+            super.onPostExecute(result)
+            if(!result!!.isEmpty()){
+            Toast.makeText(this@MainActivity,"Image Extraction is done",Toast.LENGTH_LONG).show()
+            }
+            else{
+                Toast.makeText(this@MainActivity,"Something is wrong",Toast.LENGTH_LONG).show()
+            }
+        }
+
+
+    }
     private var mImageButtonCurrentPaint:ImageButton?=null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -51,10 +123,20 @@ class MainActivity : AppCompatActivity() {
 
         }
         ib_undo.setOnClickListener {
+
             drawing_view.onClickUndo()
+            ExecuteAsyncTask("Background task is running").execute()
         }
         alertdialog.setOnClickListener{view->
             customDialog(view)
+        }
+        ib_save.setOnClickListener {
+            if(isWriteStorageAllowed()){
+                BitMapAsyncTask(getBitMapFromView(fl_drawing_view))
+            }else{
+                requestStoragePermission()
+            }
+            
         }
     }
     //method after a request for permission we access the request result by overriding the default method
@@ -104,6 +186,18 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this,"You grant an External Storage permission",Toast.LENGTH_LONG).show()
             }
         }
+    }
+    private fun getBitMapFromView(view:View):Bitmap{
+        val returnBitmap=Bitmap.createBitmap(view.width,view.height,Bitmap.Config.ARGB_8888)
+        val canvas=Canvas(returnBitmap)
+        val bgdrawable=view.background
+        if(bgdrawable!=null){
+            bgdrawable.draw(canvas)
+        }else{
+            canvas.drawColor(Color.WHITE)
+        }
+        view.draw(canvas)
+        return returnBitmap
     }
     fun isWriteStorageAllowed():Boolean{
         var result=ContextCompat.checkSelfPermission(this,Manifest.permission.WRITE_EXTERNAL_STORAGE)

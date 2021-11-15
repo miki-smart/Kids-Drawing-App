@@ -159,6 +159,17 @@ android:orientation="horizontal"
           app:layout_constraintLeft_toLeftOf="parent"
           app:layout_constraintBottom_toBottomOf="parent"
           />
+      <ImageButton
+          android:layout_width="50dp"
+          android:layout_height="50dp"
+          android:src="@drawable/ic_save"
+          android:id="@+id/ib_save"
+          android:scaleType="fitXY"
+          android:contentDescription="Image button Save"
+          app:layout_constraintRight_toRightOf="parent"
+          app:layout_constraintLeft_toLeftOf="parent"
+          app:layout_constraintBottom_toBottomOf="parent"
+          />
       <Button
           android:layout_width="50dp"
           android:layout_height="50dp"
