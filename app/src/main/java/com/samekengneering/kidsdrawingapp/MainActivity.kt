@@ -29,6 +29,7 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.lang.Exception
+import kotlin.math.log
 
 class MainActivity : AppCompatActivity() {
     private inner class ExecuteAsyncTask(val value:String): AsyncTask<Any, Void, String>(){
@@ -62,40 +63,124 @@ class MainActivity : AppCompatActivity() {
             customProgressDialog!!.dismiss()
         }
     }
-    private inner class BitMapAsyncTask(val mBitMap:Bitmap):AsyncTask<Any,Void,String>(){
+    private inner class BitmapAsyncTask(val mBitmap: Bitmap?) :
+        AsyncTask<Any, Void, String>() {
 
-        override fun doInBackground(vararg params: Any?): String {
-            var result=""
-            if(mBitMap!=null){
+        // TODO(Step 2 - Creating an variable for showing and hiding the progress dialog while saving image)
+        // STARTS
+        /**
+         * This is a progress dialog instance which we will initialize later on.
+         */
+        private lateinit var mProgressDialog: Dialog
+        // END
+
+        override fun onPreExecute() {
+            super.onPreExecute()
+            // TODO(Step 4 - Showing progress dialog while saving image)
+            // STARTS
+            showProgressDialog()
+            // END
+        }
+
+        override fun doInBackground(vararg params: Any): String {
+
+            var result = ""
+
+            if (mBitmap != null) {
+
                 try {
-                    val bytes=ByteArrayOutputStream()
-                   mBitMap.compress(Bitmap.CompressFormat.PNG,90,bytes)
-                    var f=File(externalCacheDir!!.absoluteFile.toString(),"KidsDrawingApp_"+File.separator+System.currentTimeMillis()/1000+".png")
-                    var fos=FileOutputStream(f)
-                    fos.write(bytes.toByteArray())
-                    fos.close()
-                    result=f.absolutePath
-                }catch (e:Exception){
-                    result=""
-e.printStackTrace()
+                    val bytes = ByteArrayOutputStream() // Creates a new byte array output stream.
+                    // The buffer capacity is initially 32 bytes, though its size increases if necessary.
+
+                    mBitmap.compress(Bitmap.CompressFormat.PNG, 90, bytes)
+                    /**
+                     * Write a compressed version of the bitmap to the specified outputstream.
+                     * If this returns true, the bitmap can be reconstructed by passing a
+                     * corresponding inputstream to BitmapFactory.decodeStream(). Note: not
+                     * all Formats support all bitmap configs directly, so it is possible that
+                     * the returned bitmap from BitmapFactory could be in a different bitdepth,
+                     * and/or may have lost per-pixel alpha (e.g. JPEG only supports opaque
+                     * pixels).
+                     *
+                     * @param format   The format of the compressed image
+                     * @param quality  Hint to the compressor, 0-100. 0 meaning compress for
+                     *                 small size, 100 meaning compress for max quality. Some
+                     *                 formats, like PNG which is lossless, will ignore the
+                     *                 quality setting
+                     * @param stream   The outputstream to write the compressed data.
+                     * @return true if successfully compressed to the specified stream.
+                     */
+
+                    val f = File(
+                        externalCacheDir!!.absoluteFile.toString()
+                                + File.separator + "KidDrawingApp_" + System.currentTimeMillis() / 1000 + ".jpg"
+                    )
+                    // Here the Environment : Provides access to environment variables.
+                    // getExternalStorageDirectory : returns the primary shared/external storage directory.
+                    // absoluteFile : Returns the absolute form of this abstract pathname.
+                    // File.separator : The system-dependent default name-separator character. This string contains a single character.
+
+                    val fo =
+                        FileOutputStream(f) // Creates a file output stream to write to the file represented by the specified object.
+                    fo.write(bytes.toByteArray()) // Writes bytes from the specified byte array to this file output stream.
+                    fo.close() // Closes this file output stream and releases any system resources associated with this stream. This file output stream may no longer be used for writing bytes.
+                    result = f.absolutePath // The file absolute path is return as a result.
+                } catch (e: Exception) {
+                    result = ""
+                    e.printStackTrace()
                 }
             }
             return result
         }
 
-        override fun onPostExecute(result:String?) {
+        override fun onPostExecute(result: String) {
             super.onPostExecute(result)
-            if(!result!!.isEmpty()){
-            Toast.makeText(this@MainActivity,"Image Extraction is done",Toast.LENGTH_LONG).show()
-            }
-            else{
-                Toast.makeText(this@MainActivity,"Something is wrong",Toast.LENGTH_LONG).show()
+
+            // TODO(Step 5 - Hiding the progress dialog after the image is saved successfully.)
+            // STARTS
+            cancelProgressDialog()
+            // END
+
+            if (!result.isEmpty()) {
+                Toast.makeText(
+                    this@MainActivity,
+                    "File saved successfully :$result",
+                    Toast.LENGTH_LONG
+                ).show()
+
+            } else {
+                Toast.makeText(
+                    this@MainActivity,
+                    "Something went wrong while saving the file.",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
 
+        // TODO(Step 3 - Creating an functions to show and hide progress dialog while saving image.)
+        // STARTS
+        /**
+         * This function is used to show the progress dialog with the title and message to user.
+         */
+        private fun showProgressDialog() {
+            mProgressDialog = Dialog(this@MainActivity)
 
-    }
-    private var mImageButtonCurrentPaint:ImageButton?=null
+            /*Set the screen content from a layout resource.
+            The resource will be inflated, adding all top-level views to the screen.*/
+            mProgressDialog.setContentView(R.layout.dialog_custom)
+
+            //Start the dialog and display it on screen.
+            mProgressDialog.show()
+        }
+
+        /**
+         * This function is used to dismiss the progress dialog if it is visible to user.
+         */
+        private fun cancelProgressDialog() {
+            mProgressDialog.dismiss()
+        }
+        // END
+    } private var mImageButtonCurrentPaint:ImageButton?=null
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -131,12 +216,16 @@ e.printStackTrace()
             customDialog(view)
         }
         ib_save.setOnClickListener {
-            if(isWriteStorageAllowed()){
-                BitMapAsyncTask(getBitMapFromView(fl_drawing_view))
-            }else{
+
+            //First checking if the app is already having the permission
+            if (isReadStorageAllowed()) {
+
+                BitmapAsyncTask(getBitMapFromView(fl_drawing_view)).execute()
+            } else {
+
+                //If the app don't have storage access permission we will ask for it.
                 requestStoragePermission()
             }
-            
         }
     }
     //method after a request for permission we access the request result by overriding the default method
